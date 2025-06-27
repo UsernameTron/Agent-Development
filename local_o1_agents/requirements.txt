@@ -1,0 +1,17 @@
+streamlit
+psutil
+faiss-cpu
+torch
+transformers
+sentence-transformers
+requests
+numpy
+pillow
+memory-profiler
+pyvis
+networkx
+torchaudio
+ollama
+matplotlib
+flask
+datasets
