@@ -32,6 +32,14 @@ except ImportError:
     EXECUTOR_MODEL_DISTILLED = 'executor-distilled'
     USE_DISTILLED_EXECUTOR = True
 
+# Import the new self-aware agent system
+try:
+    from .self_aware_agent import SelfAwareAgent
+    SELF_AWARE_AVAILABLE = True
+except ImportError:
+    print("SelfAwareAgent not available, using basic Agent")
+    SELF_AWARE_AVAILABLE = False
+
 # Third-party imports with error handling
 try:
     from ollama import Client as OllamaClient
@@ -105,12 +113,60 @@ def measure_memory_usage(func):
         return None, {'error': str(e)}
 
 class Agent:
-    def __init__(self, name, model):
+    """Enhanced Agent class with optional self-awareness capabilities"""
+    
+    def __init__(self, name, model, specialization=None):
+        if SELF_AWARE_AVAILABLE:
+            # Initialize as SelfAwareAgent if available
+            self._initialize_as_self_aware(name, model, specialization)
+        else:
+            # Fallback to basic agent
+            self._initialize_as_basic(name, model)
+    
+    def _initialize_as_self_aware(self, name, model, specialization):
+        """Initialize with SelfAwareAgent capabilities"""
+        # Create a SelfAwareAgent instance and copy its attributes
+        self._self_aware_agent = SelfAwareAgent(name, model, specialization)
+        
+        # Copy attributes for compatibility
+        self.name = self._self_aware_agent.name
+        self.model = self._self_aware_agent.model
+        self.client = self._self_aware_agent.client
+        self.specialization = specialization
+        
+        # Expose self-aware capabilities
+        self.agent_id = self._self_aware_agent.agent_id
+        self.performance_history = self._self_aware_agent.performance_history
+        self.knowledge_base = self._self_aware_agent.knowledge_base
+        self.improvement_tracker = self._self_aware_agent.improvement_tracker
+        self.dna = self._self_aware_agent.dna
+        self.current_metrics = self._self_aware_agent.current_metrics
+        self.task_counter = self._self_aware_agent.task_counter
+    
+    def _initialize_as_basic(self, name, model):
+        """Initialize as basic agent (fallback)"""
         self.name = name
         self.client = Client()
         self.model = model
+        self.specialization = None
+        
+        # Stub attributes for compatibility
+        self.agent_id = f"basic_{name}_{int(time.time())}"
+        self.task_counter = 0
     
     def run(self, prompt, retries=3, timeout=30):
+        """Enhanced run method with optional self-awareness"""
+        if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+            # Use SelfAwareAgent's enhanced run method
+            return self._self_aware_agent.run(prompt, retries, timeout)
+        else:
+            # Fallback to basic implementation
+            return self._basic_run(prompt, retries, timeout)
+    
+    def _basic_run(self, prompt, retries=3, timeout=30):
+        """Basic run implementation (original logic)"""
+        self.task_counter += 1
+        
         for attempt in range(retries):
             try:
                 start_time = time.time()
@@ -124,8 +180,54 @@ class Agent:
                 if attempt < retries - 1:
                     time.sleep(2 ** attempt)  # Exponential backoff
         return f"[ERROR] {self.name} failed after {retries} attempts"
+    
+    # Self-awareness methods (available when SELF_AWARE_AVAILABLE is True)
+    def analyze_self(self):
+        """Get self-analysis report"""
+        if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+            return self._self_aware_agent.analyze_self()
+        else:
+            return {"error": "Self-awareness not available"}
+    
+    def improve_self(self, improvement_plan):
+        """Apply self-improvement plan"""
+        if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+            return self._self_aware_agent.improve_self(improvement_plan)
+        else:
+            return False
+    
+    def teach_knowledge(self, target_agent, knowledge_type):
+        """Teach knowledge to another agent"""
+        if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+            return self._self_aware_agent.teach_knowledge(target_agent, knowledge_type)
+        else:
+            return False
+    
+    def receive_knowledge(self, knowledge_package):
+        """Receive knowledge from another agent"""
+        if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+            return self._self_aware_agent.receive_knowledge(knowledge_package)
+        else:
+            return False
+    
+    def get_performance_summary(self):
+        """Get performance summary"""
+        if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+            return self._self_aware_agent.get_performance_summary()
+        else:
+            return {
+                'agent_id': self.agent_id,
+                'name': self.name,
+                'task_count': self.task_counter,
+                'self_aware': False
+            }
 
 class TestGeneratorAgent(Agent):
+    """Test generator agent with enhanced capabilities"""
+    
+    def __init__(self, name, model, specialization='testing'):
+        super().__init__(name, model, specialization)
+    
     def generate_tests(self, module_path, bug_trace=None):
         base = self.run(f"Generate pytest tests for {module_path}")
         if bug_trace:
@@ -140,28 +242,51 @@ class TestGeneratorAgent(Agent):
         return base
 
 class DependencyAgent(Agent):
+    """Dependency analysis agent with enhanced capabilities"""
+    
+    def __init__(self, name, model, specialization='dependency_analysis'):
+        super().__init__(name, model, specialization)
+    
     def analyze_deps(self):
         return self.run("Analyze project dependencies and create requirements.txt")
 
-def create_ceo(): return Agent('CEO', CEO_MODEL)
-def create_executor(i, task_complexity=None):
+def create_ceo(specialization='strategic_planning'): 
+    """Create CEO agent with strategic planning specialization"""
+    return Agent('CEO', CEO_MODEL, specialization)
+
+def create_executor(i, task_complexity=None, specialization='task_execution'):
+    """Create executor agent with enhanced capabilities"""
     # Automatic model selection based on task complexity
-    # Already imported at top of file
     if task_complexity == 'high':
         model = EXECUTOR_MODEL_ORIGINAL
     elif task_complexity == 'low':
         model = EXECUTOR_MODEL_DISTILLED
     else:
         model = EXECUTOR_MODEL_DISTILLED if USE_DISTILLED_EXECUTOR else EXECUTOR_MODEL_ORIGINAL
-    return ExecutorWithFallback(f'Executor_{i}', model)
+    
+    # Create with specialization
+    executor = ExecutorWithFallback(f'Executor_{i}', model, specialization)
+    return executor
 
 class ExecutorWithFallback(Agent):
+    """Executor agent with fallback capability and enhanced self-awareness"""
+    
+    def __init__(self, name, model, specialization='task_execution'):
+        super().__init__(name, model, specialization)
+        self.original_model = EXECUTOR_MODEL_ORIGINAL
+        self.distilled_model = EXECUTOR_MODEL_DISTILLED
+    
     def run(self, prompt, retries=3, timeout=30):
         output = super().run(prompt, retries, timeout)
         # Quality check: fallback if output is error or too short
-        if (output.startswith('[ERROR]') or len(output.strip()) < 10) and self.model == EXECUTOR_MODEL_DISTILLED:
+        if (output.startswith('[ERROR]') or len(output.strip()) < 10) and self.model == self.distilled_model:
             print(f"[FALLBACK] Distilled output failed, reverting to original model for {self.name}")
-            self.model = EXECUTOR_MODEL_ORIGINAL
+            self.model = self.original_model
+            
+            # Update the underlying model if using self-aware agent
+            if SELF_AWARE_AVAILABLE and hasattr(self, '_self_aware_agent'):
+                self._self_aware_agent.model = self.original_model
+            
             return super().run(prompt, retries, timeout)
         return output
 
@@ -449,9 +574,17 @@ def automated_debugging_workflow(target_file):
     vector_memory.add(f"repair_{target_file}", json.dumps({"diagnostics": diagnostics, "root_cause": root_cause, "test_passed": test_passed}))
     return {"diagnostics": diagnostics, "root_cause": root_cause, "test_passed": test_passed}
 
-def create_summarizer(): return Agent('Summarizer', CEO_MODEL)
-def create_test_generator(): return TestGeneratorAgent('TestGenerator', CEO_MODEL)
-def create_dependency_agent(): return DependencyAgent('DependencyAgent', CEO_MODEL)
+def create_summarizer(specialization='summarization'): 
+    """Create summarizer agent with summarization specialization"""
+    return Agent('Summarizer', CEO_MODEL, specialization)
+
+def create_test_generator(specialization='testing'): 
+    """Create test generator agent with testing specialization"""
+    return TestGeneratorAgent('TestGenerator', CEO_MODEL, specialization)
+
+def create_dependency_agent(specialization='dependency_analysis'): 
+    """Create dependency agent with dependency analysis specialization"""
+    return DependencyAgent('DependencyAgent', CEO_MODEL, specialization)
 
 class PerformanceProfilerAgent:
     def __init__(self):
