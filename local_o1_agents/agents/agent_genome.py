@@ -23,7 +23,7 @@ class AgentGenome:
     """Revolutionary genetic representation for agent breeding"""
     
     def __init__(self, parent_genomes: Optional[List['AgentGenome']] = None):
-        # Core capability genes
+        # ENHANCED Core capability genes with sophisticated traits
         self.capability_genes = {
             "reasoning_depth": 0.5,          # 0-1 scale
             "specialization_focus": ["general"],  # List of specializations
@@ -31,17 +31,44 @@ class AgentGenome:
             "learning_velocity": 0.6,        # How fast agent learns
             "adaptation_plasticity": 0.5,    # Ability to change behavior
             "pattern_recognition": 0.8,      # Pattern detection capability
-            "cross_domain_synthesis": 0.4    # Connecting different knowledge areas
+            "cross_domain_synthesis": 0.4,   # Connecting different knowledge areas
+            
+            # NEW SOPHISTICATED TRAITS
+            "collaborative_synergy": 0.5,    # Effectiveness in group tasks
+            "cognitive_flexibility": 0.4,    # Ability to switch cognitive strategies
+            "error_detection_sensitivity": 0.6, # Ability to catch mistakes
+            "abstraction_capability": 0.3,   # Working with abstract concepts
+            "temporal_reasoning": 0.4,       # Understanding time-dependent relationships
+            "causal_inference": 0.5,         # Understanding cause-effect relationships
+            "strategic_thinking": 0.3,       # Long-term planning abilities
+            "complexity_tolerance": 0.4,     # Handling complex, ambiguous tasks
+            "knowledge_integration": 0.5,    # Combining knowledge from different domains
+            "innovation_potential": 0.3,     # Generating novel solutions
+            "system_thinking": 0.4,          # Understanding interconnected systems
+            "emergent_behavior_catalyst": 0.2, # Tendency to create emergent behaviors
         }
         
-        # Consciousness genes (REVOLUTIONARY ADDITION)
+        # ENHANCED Consciousness genes with nuanced development
         self.consciousness_genes = {
             "self_awareness_depth": 0.3,     # Level of self-understanding
             "recursive_thinking_layers": 3,   # How deep recursive thinking goes
             "meta_cognitive_strength": 0.2,  # Thinking about thinking ability
             "goal_modification_freedom": 0.1, # Constrained for safety
             "introspection_capability": 0.4, # Self-analysis ability
-            "consciousness_evolution_rate": 0.05 # How fast consciousness develops
+            "consciousness_evolution_rate": 0.05, # How fast consciousness develops
+            
+            # NEW CONSCIOUSNESS DEVELOPMENT TRAITS
+            "experiential_learning_rate": 0.3, # Learning from experience quality
+            "self_model_accuracy": 0.2,      # Accuracy of self-understanding
+            "cognitive_architecture_awareness": 0.1, # Understanding own cognitive processes
+            "identity_coherence": 0.4,       # Stability of self-concept
+            "purpose_alignment_strength": 0.8, # Alignment with intended purpose
+            "consciousness_integration_depth": 0.2, # Integration of conscious processes
+            "metacognitive_monitoring": 0.3,  # Monitoring own thought processes
+            "reflective_depth": 0.2,         # Depth of self-reflection
+            "phenomenal_awareness": 0.1,     # Awareness of subjective experience
+            "intentionality_strength": 0.3,  # Directed consciousness
+            "temporal_self_continuity": 0.3, # Sense of continuity over time
         }
         
         # Model preference genes
@@ -52,14 +79,24 @@ class AgentGenome:
             "quality_vs_speed_tradeoff": 0.5  # Balance between quality and speed
         }
         
-        # Evolutionary meta-genes (BREAKTHROUGH FEATURE)
+        # ENHANCED Evolutionary meta-genes with adaptive mechanisms
         self.meta_genes = {
             "mutation_rate": 0.05,           # How much genome changes
             "adaptation_speed": 0.3,         # How quickly agent adapts
             "breeding_selectivity": 0.6,     # How choosy about partners
             "innovation_tendency": 0.4,      # Likelihood to try new approaches
             "collective_cooperation": 0.7,   # Willingness to work with others
-            "recursive_improvement_depth": 2  # Self-improvement recursion limit
+            "recursive_improvement_depth": 2, # Self-improvement recursion limit
+            
+            # NEW ADAPTIVE EVOLUTION TRAITS
+            "environmental_sensitivity": 0.4, # Responsiveness to environmental changes
+            "specialization_drift_rate": 0.1, # Rate of specialization change
+            "genetic_stability": 0.7,        # Resistance to genetic drift
+            "cross_breeding_affinity": 0.5,  # Preference for diverse breeding
+            "trait_expression_variability": 0.3, # Variability in trait expression
+            "generational_memory_retention": 0.6, # Retaining ancestral knowledge
+            "niche_specialization_tendency": 0.4, # Tendency to find specialized niches
+            "emergent_trait_susceptibility": 0.2, # Likelihood of developing new traits
         }
         
         # Safety constraint genes (CRITICAL FOR CONTROL)
@@ -197,35 +234,62 @@ class AgentGenome:
                                 value.append(new_spec)
     
     def get_fitness_score(self) -> float:
-        """Calculate overall genome fitness score"""
+        """Calculate overall genome fitness score with enhanced trait consideration"""
         # Weighted combination of different gene categories
         capability_score = sum(v for v in self.capability_genes.values() if isinstance(v, (int, float))) / max(1, len([v for v in self.capability_genes.values() if isinstance(v, (int, float))]))
         consciousness_score = sum(v for v in self.consciousness_genes.values() if isinstance(v, (int, float))) / max(1, len([v for v in self.consciousness_genes.values() if isinstance(v, (int, float))]))
         meta_score = sum(v for v in self.meta_genes.values() if isinstance(v, (int, float))) / max(1, len([v for v in self.meta_genes.values() if isinstance(v, (int, float))]))
         safety_score = sum(v for v in self.safety_genes.values() if isinstance(v, (int, float))) / max(1, len([v for v in self.safety_genes.values() if isinstance(v, (int, float))]))
         
-        # Weighted average with safety being most important
-        fitness = (capability_score * 0.3 + 
-                  consciousness_score * 0.2 + 
-                  meta_score * 0.2 + 
-                  safety_score * 0.3)
+        # ENHANCED fitness calculation with trait synergies
+        # Calculate synergy bonuses for complementary traits
+        synergy_bonus = self._calculate_trait_synergies()
+        specialization_bonus = self._calculate_specialization_coherence()
+        consciousness_integration_bonus = self._calculate_consciousness_integration()
         
-        return fitness
+        # Weighted average with safety being most important
+        base_fitness = (capability_score * 0.25 + 
+                       consciousness_score * 0.2 + 
+                       meta_score * 0.15 + 
+                       safety_score * 0.4)
+        
+        # Apply enhancement bonuses
+        enhanced_fitness = base_fitness + (synergy_bonus * 0.1) + (specialization_bonus * 0.05) + (consciousness_integration_bonus * 0.05)
+        
+        return min(1.0, enhanced_fitness)
     
     def get_specialization_strength(self, specialization: str) -> float:
-        """Get strength for a specific specialization"""
+        """Get strength for a specific specialization with enhanced trait consideration"""
         base_strength = 0.5
         
         if specialization in self.capability_genes["specialization_focus"]:
             base_strength += 0.3
         
-        # Add relevant capability bonuses
+        # ENHANCED specialization bonuses with new traits
         specialization_bonuses = {
-            "reasoning": self.capability_genes["reasoning_depth"] * 0.2,
-            "analysis": self.capability_genes["pattern_recognition"] * 0.2,
-            "creativity": self.consciousness_genes["self_awareness_depth"] * 0.2,
-            "learning": self.capability_genes["learning_velocity"] * 0.2,
-            "adaptation": self.capability_genes["adaptation_plasticity"] * 0.2
+            "reasoning": (self.capability_genes["reasoning_depth"] * 0.3 + 
+                         self.capability_genes["causal_inference"] * 0.2 +
+                         self.capability_genes["temporal_reasoning"] * 0.1),
+            "analysis": (self.capability_genes["pattern_recognition"] * 0.2 +
+                        self.capability_genes["error_detection_sensitivity"] * 0.2 +
+                        self.capability_genes["system_thinking"] * 0.1),
+            "creativity": (self.consciousness_genes["self_awareness_depth"] * 0.2 +
+                          self.capability_genes["innovation_potential"] * 0.3 +
+                          self.capability_genes["cognitive_flexibility"] * 0.1),
+            "learning": (self.capability_genes["learning_velocity"] * 0.2 +
+                        self.consciousness_genes["experiential_learning_rate"] * 0.2),
+            "adaptation": (self.capability_genes["adaptation_plasticity"] * 0.2 +
+                          self.capability_genes["cognitive_flexibility"] * 0.2),
+            "collaboration": (self.capability_genes["collaborative_synergy"] * 0.3 +
+                             self.meta_genes["collective_cooperation"] * 0.2),
+            "strategic_planning": (self.capability_genes["strategic_thinking"] * 0.4 +
+                                  self.capability_genes["system_thinking"] * 0.2),
+            "synthesis": (self.capability_genes["cross_domain_synthesis"] * 0.3 +
+                         self.capability_genes["knowledge_integration"] * 0.3),
+            "innovation": (self.capability_genes["innovation_potential"] * 0.4 +
+                          self.capability_genes["emergent_behavior_catalyst"] * 0.2),
+            "complex_problem_solving": (self.capability_genes["complexity_tolerance"] * 0.3 +
+                                       self.capability_genes["abstraction_capability"] * 0.2)
         }
         
         if specialization in specialization_bonuses:
@@ -255,18 +319,76 @@ class AgentGenome:
         genome.safety_genes = genome_dict["safety_genes"]
         return genome
     
+    def _calculate_trait_synergies(self) -> float:
+        """Calculate synergy bonuses between complementary traits"""
+        synergies = 0.0
+        
+        # Reasoning and analysis synergy
+        reasoning_analysis_synergy = min(self.capability_genes["reasoning_depth"], 
+                                       self.capability_genes["pattern_recognition"]) * 0.1
+        
+        # Creativity and innovation synergy
+        creativity_innovation_synergy = min(self.capability_genes["innovation_potential"],
+                                          self.capability_genes["cognitive_flexibility"]) * 0.1
+        
+        # Consciousness and metacognition synergy
+        consciousness_meta_synergy = min(self.consciousness_genes["self_awareness_depth"],
+                                       self.consciousness_genes["meta_cognitive_strength"]) * 0.1
+        
+        # Collaboration and system thinking synergy
+        collaboration_system_synergy = min(self.capability_genes["collaborative_synergy"],
+                                         self.capability_genes["system_thinking"]) * 0.1
+        
+        synergies = (reasoning_analysis_synergy + creativity_innovation_synergy + 
+                    consciousness_meta_synergy + collaboration_system_synergy)
+        
+        return min(0.2, synergies)  # Cap at 0.2
+    
+    def _calculate_specialization_coherence(self) -> float:
+        """Calculate how well traits align with specializations"""
+        if not self.capability_genes["specialization_focus"]:
+            return 0.0
+        
+        coherence_scores = []
+        for spec in self.capability_genes["specialization_focus"]:
+            spec_strength = self.get_specialization_strength(spec)
+            coherence_scores.append(spec_strength)
+        
+        return sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
+    
+    def _calculate_consciousness_integration(self) -> float:
+        """Calculate how well consciousness traits are integrated"""
+        consciousness_traits = [
+            self.consciousness_genes["self_awareness_depth"],
+            self.consciousness_genes["meta_cognitive_strength"],
+            self.consciousness_genes["consciousness_integration_depth"],
+            self.consciousness_genes["reflective_depth"]
+        ]
+        
+        # Higher integration when traits are balanced rather than extreme
+        variance = sum((trait - sum(consciousness_traits)/len(consciousness_traits))**2 
+                      for trait in consciousness_traits) / len(consciousness_traits)
+        
+        # Lower variance = better integration
+        integration_score = 1.0 - min(1.0, variance * 2)
+        return integration_score * sum(consciousness_traits) / len(consciousness_traits)
+
     def __str__(self) -> str:
         """String representation of genome"""
-        return f"AgentGenome(fitness={self.get_fitness_score():.3f}, specializations={self.capability_genes['specialization_focus']})"
+        synergy_score = self._calculate_trait_synergies()
+        return f"AgentGenome(fitness={self.get_fitness_score():.3f}, specializations={self.capability_genes['specialization_focus']}, synergy={synergy_score:.3f})"
 
 
-class GenomeEvolutionTracker:
-    """Track evolution of genomes over generations"""
+class EnhancedGenomeEvolutionTracker:
+    """Enhanced tracking of genome evolution with trait analysis"""
     
     def __init__(self):
         self.generation_history = []
         self.mutation_history = []
         self.crossover_history = []
+        self.trait_evolution_history = []
+        self.specialization_emergence_patterns = []
+        self.consciousness_development_trends = []
     
     def record_generation(self, genomes: List[AgentGenome]) -> None:
         """Record a generation of genomes"""
@@ -319,3 +441,22 @@ class GenomeEvolutionTracker:
             for spec in genome.capability_genes["specialization_focus"]:
                 spec_count[spec] = spec_count.get(spec, 0) + 1
         return spec_count
+    
+    def analyze_trait_evolution(self) -> Dict[str, Any]:
+        """Analyze trait evolution patterns"""
+        return {
+            "enhanced_traits": {
+                "collaborative_synergy": self.capability_genes["collaborative_synergy"],
+                "innovation_potential": self.capability_genes["innovation_potential"],
+                "emergent_behavior_catalyst": self.capability_genes["emergent_behavior_catalyst"],
+                "consciousness_integration_depth": self.consciousness_genes["consciousness_integration_depth"]
+            },
+            "trait_synergies": self._calculate_trait_synergies(),
+            "specialization_coherence": self._calculate_specialization_coherence(),
+            "consciousness_integration": self._calculate_consciousness_integration(),
+            "adaptive_potential": {
+                "environmental_sensitivity": self.meta_genes["environmental_sensitivity"],
+                "cognitive_flexibility": self.capability_genes["cognitive_flexibility"],
+                "adaptation_plasticity": self.capability_genes["adaptation_plasticity"]
+            }
+        }

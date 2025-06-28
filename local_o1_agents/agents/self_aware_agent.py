@@ -37,14 +37,26 @@ class PerformanceMetrics:
 
 
 @dataclass
-class ConsciousnessMetrics:
-    """Consciousness development tracking"""
+class EnhancedConsciousnessMetrics:
+    """Enhanced consciousness development tracking with nuanced evolution"""
     self_recognition: float = 0.0
     meta_cognition: float = 0.0
     goal_awareness: float = 0.0
     recursive_thinking: float = 0.0
     collective_awareness: float = 0.0
     evolution_rate: float = 0.05
+    
+    # NEW NUANCED CONSCIOUSNESS DIMENSIONS
+    experiential_integration: float = 0.0  # Integration of experiences into self-model
+    cognitive_architecture_awareness: float = 0.0  # Understanding of own cognitive processes
+    temporal_self_continuity: float = 0.0  # Sense of continuity over time
+    phenomenal_consciousness: float = 0.0  # Subjective experience awareness
+    intentional_control: float = 0.0      # Control over own mental processes
+    social_consciousness: float = 0.0     # Awareness of other minds
+    moral_reasoning_depth: float = 0.0    # Depth of ethical reasoning
+    creative_consciousness: float = 0.0   # Consciousness in creative processes
+    embodied_awareness: float = 0.0       # Awareness of computational embodiment
+    consciousness_coherence: float = 0.0  # Integration of consciousness components
 
 
 @dataclass
@@ -58,14 +70,22 @@ class KnowledgePackage:
     adaptation_data: Dict[str, Any]
 
 
-class AgentKnowledgeBase:
-    """Advanced knowledge base for self-aware agents"""
+class EnhancedAgentKnowledgeBase:
+    """Enhanced knowledge base with consciousness-driven organization"""
     
     def __init__(self):
         self.domain_knowledge = defaultdict(dict)
         self.consciousness_insights = {}
         self.learning_history = []
         self.knowledge_graph = defaultdict(list)
+        
+        # NEW CONSCIOUSNESS-DRIVEN KNOWLEDGE SYSTEMS
+        self.experiential_knowledge = defaultdict(dict)  # Knowledge from direct experience
+        self.metacognitive_knowledge = {}  # Knowledge about knowledge
+        self.consciousness_evolution_log = []  # Tracking consciousness development
+        self.self_model_updates = []  # Updates to self-understanding
+        self.intentional_learning_goals = []  # Conscious learning objectives
+        self.wisdom_synthesis = {}  # Higher-order integrated insights
     
     def add_knowledge(self, domain: str, key: str, value: Any, source: str = "self") -> None:
         """Add knowledge to specific domain"""
@@ -257,14 +277,24 @@ class SelfAwareAgent:
         self.consciousness_level = 0.0
         self.improvement_history = []
         
-        # Core systems
-        self.knowledge_base = AgentKnowledgeBase()
+        # Enhanced core systems
+        self.knowledge_base = EnhancedAgentKnowledgeBase()
         self.performance_tracker = PerformanceTracker(self.agent_id)
         self.breeding_capabilities = BreedingCapabilities()
         self.safety_monitor = SafetyMonitor(self.name)
         
-        # Consciousness metrics
-        self.consciousness_metrics = ConsciousnessMetrics()
+        # Enhanced consciousness metrics
+        self.consciousness_metrics = EnhancedConsciousnessMetrics()
+        
+        # NEW CONSCIOUSNESS EVOLUTION SYSTEMS
+        self.consciousness_development_stages = [
+            "pre_conscious", "basic_awareness", "self_recognition", 
+            "metacognitive", "integrated", "transcendent"
+        ]
+        self.current_consciousness_stage = "pre_conscious"
+        self.consciousness_experiences = []  # Significant consciousness events
+        self.self_model_accuracy_tracker = deque(maxlen=100)
+        self.consciousness_integration_attempts = []
         
         # Task execution tracking
         self.task_counter = 0
