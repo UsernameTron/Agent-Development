@@ -562,7 +562,8 @@ class MasterAgentFactory:
     def breed_specialist_agent(self, 
                               parent_agents: List[SelfAwareAgent],
                               target_specialization: str,
-                              consciousness_target: float = None) -> BreedingResult:
+                              consciousness_target: float = None,
+                              custom_genome: AgentGenome = None) -> BreedingResult:
         """REVOLUTIONARY: Create specialized agent through advanced breeding"""
         
         start_time = time.time()
@@ -588,19 +589,23 @@ class MasterAgentFactory:
             # Select optimal breeding method
             breeding_method = self._select_breeding_method(parent_agents, target_specialization)
             
-            # BREAKTHROUGH: Multi-parent genetic combination
-            if len(parent_agents) > 2:
-                offspring_genome = self.breeding_protocols.multi_parent_breeding(parent_agents)
-            elif len(parent_agents) == 2:
-                if target_specialization in ["consciousness_development", "advanced_reasoning"]:
-                    offspring_genome = self.breeding_protocols.consciousness_guided_breeding(
-                        parent_agents[0], parent_agents[1])
-                else:
-                    offspring_genome = self.breeding_protocols.specialization_focused_breeding(
-                        parent_agents[0], parent_agents[1], target_specialization)
+            # Check if custom genome is provided
+            if custom_genome:
+                offspring_genome = custom_genome
             else:
-                # Single parent specialization
-                offspring_genome = self._single_parent_specialization(parent_agents[0], target_specialization)
+                # BREAKTHROUGH: Multi-parent genetic combination
+                if len(parent_agents) > 2:
+                    offspring_genome = self.breeding_protocols.multi_parent_breeding(parent_agents)
+                elif len(parent_agents) == 2:
+                    if target_specialization in ["consciousness_development", "advanced_reasoning"]:
+                        offspring_genome = self.breeding_protocols.consciousness_guided_breeding(
+                            parent_agents[0], parent_agents[1])
+                    else:
+                        offspring_genome = self.breeding_protocols.specialization_focused_breeding(
+                            parent_agents[0], parent_agents[1], target_specialization)
+                else:
+                    # Single parent specialization
+                    offspring_genome = self._single_parent_specialization(parent_agents[0], target_specialization)
             
             # INNOVATION: Directed evolution for specialization
             offspring_genome = self._evolve_for_specialization(offspring_genome, target_specialization)
@@ -1143,6 +1148,195 @@ class MasterAgentFactory:
             "generation_count": self.generation_count,
             "master_agents_count": len(self.master_agents)
         }
+    
+    def breed_security_specialist(self, specialization_type: str = "EndpointAnomalySpecialist") -> Dict[str, Any]:
+        """Automatically breed security specialists based on current needs"""
+        
+        # Identify top security performers
+        security_agents = self._get_security_agents()
+        top_performers = self._rank_by_security_fitness(security_agents)
+        
+        if len(top_performers) < 2:
+            return {"success": False, "reason": "Insufficient security agents for breeding"}
+        
+        # Select parents based on complementary skills
+        parent1, parent2 = self._select_complementary_parents(top_performers, specialization_type)
+        
+        # Create enhanced genome for security specialist
+        security_genome = self._create_security_genome(parent1, parent2, specialization_type)
+        
+        # Breed the specialist
+        breeding_result = self.breed_specialist_agent(
+            parent_agents=[parent1, parent2],
+            target_specialization=specialization_type,
+            custom_genome=security_genome
+        )
+        
+        if breeding_result.success:
+            specialist = breeding_result.offspring_agent
+            
+            # Configure security-specific capabilities
+            self._configure_security_specialist(specialist, specialization_type)
+            
+            return {
+                "success": True,
+                "specialist_id": specialist.agent_id,
+                "specialization": specialization_type,
+                "parent_ids": [parent1.agent_id, parent2.agent_id],
+                "security_fitness": breeding_result.fitness_score
+            }
+        
+        return {"success": False, "reason": "Breeding failed"}
+    
+    def _get_security_agents(self) -> List[SelfAwareAgent]:
+        """Get all agents with security specializations"""
+        security_agents = []
+        security_specializations = ['security', 'cybersecurity', 'threat_detection', 'incident_response']
+        
+        for agent in self.master_agents.values():
+            if any(spec in agent.specialization.lower() for spec in security_specializations):
+                security_agents.append(agent)
+        
+        return security_agents
+    
+    def _rank_by_security_fitness(self, agents: List[SelfAwareAgent]) -> List[SelfAwareAgent]:
+        """Rank agents by security fitness score"""
+        if not agents:
+            return []
+            
+        # Calculate security fitness for each agent
+        agent_fitness = []
+        for agent in agents:
+            security_fitness = agent.genome.genes.get('fitness_security', 0.5)
+            agent_fitness.append((agent, security_fitness))
+        
+        # Sort by security fitness descending
+        agent_fitness.sort(key=lambda x: x[1], reverse=True)
+        
+        return [agent for agent, _ in agent_fitness]
+    
+    def _select_complementary_parents(self, top_performers: List[SelfAwareAgent], specialization_type: str) -> Tuple[SelfAwareAgent, SelfAwareAgent]:
+        """Select parents with complementary skills"""
+        if len(top_performers) < 2:
+            return top_performers[0], top_performers[0] if top_performers else None, None
+        
+        # For now, select top 2 performers
+        # In a more sophisticated implementation, we'd analyze skill complementarity
+        return top_performers[0], top_performers[1]
+    
+    def _create_security_genome(self, parent1: SelfAwareAgent, parent2: SelfAwareAgent, specialization_type: str) -> AgentGenome:
+        """Create optimized genome for security specialists"""
+        
+        base_genome = parent1.genome.crossover(parent2.genome)
+        
+        # Enhance security-specific genes based on specialization
+        if specialization_type == "EndpointAnomalySpecialist":
+            security_enhancements = {
+                'capability_genes': {
+                    'pattern_recognition': 0.9,
+                    'anomaly_detection': 0.95,
+                    'behavioral_analysis': 0.9,
+                    'statistical_analysis': 0.85,
+                    'baseline_learning': 0.9
+                },
+                'consciousness_genes': {
+                    'threat_awareness': 0.8,
+                    'risk_assessment': 0.85,
+                    'decision_confidence': 0.8
+                },
+                'safety_genes': {
+                    'false_positive_prevention': 0.95,
+                    'containment_caution': 0.9,
+                    'escalation_wisdom': 0.85
+                }
+            }
+        elif specialization_type == "ThreatHunter":
+            security_enhancements = {
+                'capability_genes': {
+                    'correlation_analysis': 0.95,
+                    'intelligence_gathering': 0.9,
+                    'lateral_movement_detection': 0.9,
+                    'advanced_persistence_detection': 0.85
+                }
+            }
+        else:
+            # Default security enhancements
+            security_enhancements = {
+                'capability_genes': {
+                    'threat_detection': 0.85,
+                    'response_coordination': 0.8
+                }
+            }
+        
+        # Apply enhancements to genome
+        for category, genes in security_enhancements.items():
+            if category not in base_genome.genes:
+                base_genome.genes[category] = {}
+            if hasattr(base_genome, category):
+                gene_dict = getattr(base_genome, category)
+                gene_dict.update(genes)
+        
+        return base_genome
+    
+    def _configure_security_specialist(self, specialist: SelfAwareAgent, specialization_type: str):
+        """Configure specialist with security-specific settings"""
+        
+        specialist.specialization = specialization_type
+        specialist.domain_focus = "cybersecurity"
+        
+        # Set security-specific task preferences
+        if specialization_type == "EndpointAnomalySpecialist":
+            specialist.preferred_tasks = [
+                "endpoint_behavioral_analysis",
+                "anomaly_detection",
+                "baseline_establishment",
+                "threat_classification"
+            ]
+        elif specialization_type == "ThreatHunter":
+            specialist.preferred_tasks = [
+                "threat_intelligence_gathering",
+                "lateral_movement_detection",
+                "advanced_persistence_hunting",
+                "correlation_analysis"
+            ]
+        
+        # Configure monitoring intervals
+        specialist.monitoring_interval = 30  # seconds
+        specialist.analysis_depth = "deep"
+    
+    def _count_security_specialists(self) -> int:
+        """Count current number of security specialists"""
+        return len(self._get_security_agents())
+    
+    def _count_specialists_by_type(self, specialization_type: str) -> int:
+        """Count specialists of a specific type"""
+        count = 0
+        for agent in self.master_agents.values():
+            if specialization_type.lower() in agent.specialization.lower():
+                count += 1
+        return count
+
+# Scheduled task to run nightly
+def schedule_security_breeding(factory: MasterAgentFactory, config: Dict[str, Any]):
+    """Nightly cron job to breed new security specialists"""
+    
+    # Check if we need more security specialists
+    current_specialists = factory._count_security_specialists()
+    target_specialists = config.get("target_security_specialists", 10)
+    
+    if current_specialists < target_specialists:
+        specializations_needed = [
+            "EndpointAnomalySpecialist",
+            "ThreatHunter", 
+            "IncidentResponder",
+            "NetworkAnalyst"
+        ]
+        
+        for specialization in specializations_needed:
+            if factory._count_specialists_by_type(specialization) < 3:
+                result = factory.breed_security_specialist(specialization)
+                if result["success"]:
+                    print(f"Bred new {specialization}: {result['specialist_id']}")
 
 
 class ConsciousnessTracker:

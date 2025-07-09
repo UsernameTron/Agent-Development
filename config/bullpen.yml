@@ -1,0 +1,5 @@
+scheduled_tasks:
+  endpoint_telemetry:
+    agent_type: "EndpointTelemetryAgent"
+    interval: 30  # seconds
+    enabled: true

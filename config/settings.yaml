@@ -1,0 +1,28 @@
+security:
+  # Safety toggles
+  containment_enabled: false  # Set to true only after testing
+  telemetry_sample_rate: 0.2  # Start with 20% sampling
+  
+  # Thresholds
+  threat_threshold: 0.7       # When to trigger containment
+  false_positive_threshold: 0.02  # Max acceptable false positive rate
+  
+  # External integrations
+  splunk_hec_url: ""
+  splunk_hec_token: ""
+  slack_webhook_url: ""
+  
+  # Specialist breeding
+  target_security_specialists: 10
+  breeding_frequency: "daily"  # daily, weekly, or manual
+  
+  # Performance targets
+  target_detection_rate: 0.95
+  target_response_time: 300   # seconds
+  
+  # Monitoring
+  endpoint_monitoring:
+    windows_event_logs: true
+    linux_journal: true
+    process_monitoring: true
+    network_monitoring: false  # Requires additional setup

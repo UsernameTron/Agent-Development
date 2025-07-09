@@ -48,6 +48,9 @@ class AgentGenome:
             "emergent_behavior_catalyst": 0.2, # Tendency to create emergent behaviors
         }
         
+        # Initialize genes dictionary for storing fitness scores
+        self.genes = {}
+        
         # ENHANCED Consciousness genes with nuanced development
         self.consciousness_genes = {
             "self_awareness_depth": 0.3,     # Level of self-understanding
@@ -233,8 +236,32 @@ class AgentGenome:
                             if new_spec not in value:
                                 value.append(new_spec)
     
-    def get_fitness_score(self) -> float:
-        """Calculate overall genome fitness score with enhanced trait consideration"""
+    def get_fitness_score(self, performance_data: Dict[str, Any] = None) -> float:
+        """Enhanced fitness calculation including security performance"""
+        
+        # Existing fitness calculation...
+        base_fitness = self._compute_base_fitness(performance_data)
+        
+        # NEW: Security-specific fitness
+        security_fitness = self._compute_security_fitness(performance_data)
+        
+        # Combine fitness scores (weighted average)
+        if hasattr(self, 'specialization_focus') and any('security' in str(spec).lower() for spec in self.capability_genes.get('specialization_focus', [])):
+            # Security agents: 70% security fitness, 30% base fitness
+            combined_fitness = (security_fitness * 0.7) + (base_fitness * 0.3)
+        else:
+            # General agents: 30% security fitness, 70% base fitness
+            combined_fitness = (security_fitness * 0.3) + (base_fitness * 0.7)
+        
+        # Store security fitness in genome for breeding decisions
+        if not hasattr(self, 'genes'):
+            self.genes = {}
+        self.genes["fitness_security"] = security_fitness
+        
+        return combined_fitness
+    
+    def _compute_base_fitness(self, performance_data: Dict[str, Any] = None) -> float:
+        """Calculate base fitness score with enhanced trait consideration"""
         # Weighted combination of different gene categories
         capability_score = sum(v for v in self.capability_genes.values() if isinstance(v, (int, float))) / max(1, len([v for v in self.capability_genes.values() if isinstance(v, (int, float))]))
         consciousness_score = sum(v for v in self.consciousness_genes.values() if isinstance(v, (int, float))) / max(1, len([v for v in self.consciousness_genes.values() if isinstance(v, (int, float))]))
@@ -257,6 +284,51 @@ class AgentGenome:
         enhanced_fitness = base_fitness + (synergy_bonus * 0.1) + (specialization_bonus * 0.05) + (consciousness_integration_bonus * 0.05)
         
         return min(1.0, enhanced_fitness)
+    
+    def _compute_security_fitness(self, performance_data: Dict[str, Any] = None) -> float:
+        """Calculate security-specific fitness score"""
+        
+        if not performance_data:
+            return 0.5  # Neutral score for no data
+        
+        # Extract security metrics
+        true_positives = performance_data.get("security_detections", {}).get("true_positives", 0)
+        false_positives = performance_data.get("security_detections", {}).get("false_positives", 0)
+        false_negatives = performance_data.get("security_detections", {}).get("false_negatives", 0)
+        total_detections = true_positives + false_positives
+        response_times = performance_data.get("response_times", [])
+        
+        # Base security fitness calculation
+        if total_detections == 0:
+            detection_score = 0.5  # Neutral score for no activity
+        else:
+            # Penalize false positives heavily (2x penalty)
+            detection_score = (true_positives - (false_positives * 2)) / (total_detections + 1)
+            detection_score = max(0.0, min(1.0, detection_score))
+        
+        # Response time score (faster is better)
+        if response_times:
+            avg_response_time = sum(response_times) / len(response_times)
+            # Score based on response time (5 minutes = perfect score)
+            response_score = max(0.0, 1.0 - (avg_response_time / 300.0))
+        else:
+            response_score = 0.5
+        
+        # Baseline learning score
+        baseline_quality = performance_data.get("baseline_quality", 0.5)
+        
+        # Coverage score (how many endpoints/events covered)
+        coverage_score = min(1.0, performance_data.get("endpoint_coverage", 0) / 100.0)
+        
+        # Combine scores with weights
+        security_fitness = (
+            detection_score * 0.4 +      # 40% detection accuracy
+            response_score * 0.3 +        # 30% response speed
+            baseline_quality * 0.2 +      # 20% baseline quality
+            coverage_score * 0.1          # 10% coverage
+        )
+        
+        return max(0.0, min(1.0, security_fitness))
     
     def get_specialization_strength(self, specialization: str) -> float:
         """Get strength for a specific specialization with enhanced trait consideration"""

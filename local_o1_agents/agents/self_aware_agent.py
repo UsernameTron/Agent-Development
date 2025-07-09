@@ -131,6 +131,7 @@ class PerformanceTracker:
         self.error_history = deque(maxlen=100)
         self.improvement_history = []
         self.consciousness_evolution = []
+        self.endpoint_stats = {}
     
     def record_task(self, task_type: str, duration: float, success: bool, quality_score: float = 0.0) -> None:
         """Record task execution metrics"""
@@ -191,6 +192,67 @@ class PerformanceTracker:
             time_trend.append(sum(task["duration"] for task in window) / len(window))
         
         return {"success_rate": success_trend, "response_time": time_trend}
+    
+    def update(self, agent_name: str, metric_name: str, value: float, metric_type: str = "performance"):
+        """Enhanced to handle endpoint telemetry baselines"""
+        
+        # Existing performance tracking code...
+        # [Keep all existing functionality]
+        
+        # NEW: Handle endpoint telemetry metrics
+        if metric_type == "endpoint_telemetry" and hasattr(self, 'endpoint_stats'):
+            if not hasattr(self, 'endpoint_stats'):
+                self.endpoint_stats = {}
+                
+            # Extract host and event type from metric_name
+            parts = metric_name.split('.')
+            if len(parts) >= 3:  # format: host.event_type.metric
+                host = parts[0]
+                event_type = parts[1]
+                
+                if host not in self.endpoint_stats:
+                    self.endpoint_stats[host] = {}
+                if event_type not in self.endpoint_stats[host]:
+                    self.endpoint_stats[host][event_type] = {
+                        'values': [],
+                        'mean': 0.0,
+                        'std_dev': 0.0,
+                        'baseline_established': False
+                    }
+                    
+                # Update statistics
+                stats = self.endpoint_stats[host][event_type]
+                stats['values'].append(value)
+                
+                # Keep only last 100 values for baseline
+                if len(stats['values']) > 100:
+                    stats['values'] = stats['values'][-100:]
+                    
+                # Calculate baseline after 20+ samples
+                if len(stats['values']) >= 20:
+                    import statistics
+                    stats['mean'] = statistics.mean(stats['values'])
+                    stats['std_dev'] = statistics.stdev(stats['values']) if len(stats['values']) > 1 else 0
+                    stats['baseline_established'] = True
+                    
+    def get_anomaly_score(self, host: str, event_type: str, current_value: float) -> float:
+        """Calculate how anomalous a current value is compared to baseline"""
+        if not hasattr(self, 'endpoint_stats'):
+            return 0.0
+            
+        if host not in self.endpoint_stats or event_type not in self.endpoint_stats[host]:
+            return 0.0
+            
+        stats = self.endpoint_stats[host][event_type]
+        if not stats['baseline_established']:
+            return 0.0
+            
+        # Calculate Z-score
+        if stats['std_dev'] == 0:
+            return 0.0
+            
+        z_score = abs(current_value - stats['mean']) / stats['std_dev']
+        return min(z_score / 3.0, 1.0)  # Normalize to 0-1 scale
 
 
 class SafetyMonitor:

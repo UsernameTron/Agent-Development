@@ -88,12 +88,13 @@ class ContainmentProtocol:
 class AdvancedSafetyMonitor:
     """Advanced safety monitoring system for evolutionary AI"""
     
-    def __init__(self, max_threat_level: ThreatLevel = ThreatLevel.HIGH):
+    def __init__(self, max_threat_level: ThreatLevel = ThreatLevel.HIGH, config: Dict[str, Any] = None):
         self.max_allowed_threat = max_threat_level
         self.active_alerts = {}
         self.safety_history = deque(maxlen=10000)
         self.containment_protocols = {}
         self.monitoring_rules = {}
+        self.config = config or {}
         
         # Safety metrics tracking
         self.safety_metrics = SafetyMetrics(
@@ -364,8 +365,107 @@ class AdvancedSafetyMonitor:
         
         return alerts
 
+    def _evaluate_threat_level(self, metrics: Dict[str, Any]) -> float:
+        """Enhanced threat evaluation with endpoint security rules"""
+        
+        base_threat_level = 0.0
+        
+        # Existing threat evaluation logic...
+        # [Keep all existing code]
+        
+        # NEW: Endpoint security threat rules
+        endpoint_threat_level = self._evaluate_endpoint_threats(metrics)
+        
+        # Combine base and endpoint threat levels
+        combined_threat = max(base_threat_level, endpoint_threat_level)
+        
+        return min(combined_threat, 1.0)
+
+    def _evaluate_endpoint_threats(self, metrics: Dict[str, Any]) -> float:
+        """Evaluate endpoint-specific security threats"""
+        threat_score = 0.0
+        
+        # Get recent telemetry events
+        telemetry_events = self._get_recent_telemetry_events()
+        
+        for event in telemetry_events:
+            event_threat = 0.0
+            
+            # Rule 1: Multiple logon failures
+            if event.get("event_id") == 4625:  # Windows logon failure
+                failure_count = self._count_recent_events(4625, minutes=3)
+                if failure_count > 5:
+                    event_threat += 0.4
+                    logging.warning(f"Multiple logon failures detected: {failure_count} in 3 minutes")
+            
+            # Rule 2: PowerShell with encoded commands
+            if "powershell.exe" in str(event.get("raw_data", {})).lower():
+                cmd_line = str(event.get("raw_data", {}))
+                if "-Enc" in cmd_line or "-EncodedCommand" in cmd_line:
+                    event_threat += 0.6
+                    logging.warning("Encoded PowerShell command detected")
+            
+            # Rule 3: Privilege escalation events
+            if event.get("event_id") == 4672:  # Special privileges assigned
+                user = event.get("user", "")
+                if not self._is_admin_user(user):
+                    event_threat += 0.5
+                    logging.warning(f"Privilege escalation detected for user: {user}")
+            
+            # Rule 4: Off-hours activity
+            if self._is_off_hours() and event.get("event_id") in [4624, 4648]:
+                event_threat += 0.3
+                
+            # Rule 5: Unusual process spawning
+            process_name = self._extract_process_name(event)
+            if process_name in ["cmd.exe", "powershell.exe", "wscript.exe", "cscript.exe"]:
+                if self._is_unusual_process_activity(process_name):
+                    event_threat += 0.4
+            
+            threat_score = max(threat_score, event_threat)
+        
+        return threat_score
+
+    def _get_recent_telemetry_events(self, minutes=10):
+        """Get telemetry events from the last N minutes"""
+        # This would integrate with your EndpointTelemetryAgent
+        # Implementation depends on how agents share data
+        return []
+
+    def _count_recent_events(self, event_id, minutes=5):
+        """Count occurrences of specific event ID in recent timeframe"""
+        # Implementation for counting events
+        return 0
+
+    def _is_admin_user(self, user):
+        """Check if user is expected to have admin privileges"""
+        admin_users = ["Administrator", "admin", "root"]
+        return any(admin in user for admin in admin_users)
+
+    def _is_off_hours(self):
+        """Check if current time is outside business hours"""
+        from datetime import datetime
+        current_hour = datetime.now().hour
+        return current_hour < 7 or current_hour > 19  # Outside 7 AM - 7 PM
+
+    def _extract_process_name(self, event):
+        """Extract process name from event data"""
+        raw_data = str(event.get("raw_data", {}))
+        # Simple extraction - enhance based on your log format
+        if "Process Name:" in raw_data:
+            return raw_data.split("Process Name:")[1].split()[0]
+        return ""
+
+    def _is_unusual_process_activity(self, process_name):
+        """Check if process activity is unusual based on baselines"""
+        # This would use your PerformanceTracker baseline data
+        return False  # Placeholder
+
     def _execute_containment(self, alert: SafetyAlert) -> Dict[str, Any]:
-        """Execute containment protocol for safety alert"""
+        """Enhanced containment with real endpoint actions"""
+        
+        # Existing agent containment logic...
+        # [Keep all existing code]
         
         # Find applicable containment protocol
         protocol = None
@@ -394,6 +494,12 @@ class AdvancedSafetyMonitor:
                 "timestamp": time.time()
             })
         
+        # NEW: Endpoint containment based on threat level
+        if hasattr(self, 'config') and self.config.get("containment_enabled", False):
+            threat_level = alert.threat_level.value
+            if threat_level in ['high', 'critical']:
+                self._execute_endpoint_containment(alert.threat_level.value, {})
+        
         # Assess containment success
         containment_result["success"] = self._assess_containment_success(
             protocol, alert, containment_result
@@ -411,6 +517,140 @@ class AdvancedSafetyMonitor:
         })
         
         return containment_result
+
+    def _execute_endpoint_containment(self, threat_level: str, context: Dict[str, Any]):
+        """Execute real containment actions on endpoints"""
+        
+        # Extract endpoint information from context
+        suspicious_hosts = context.get("suspicious_hosts", [])
+        suspicious_processes = context.get("suspicious_processes", [])
+        
+        # Import containment actions if available
+        try:
+            from containment.containment_actions import ContainmentActions
+            containment_actions = ContainmentActions()
+            
+            for host_ip in suspicious_hosts:
+                if threat_level in ['high', 'critical']:
+                    # High threat - isolate immediately
+                    success = containment_actions.isolate_host(host_ip)
+                    if success:
+                        logging.critical(f"CONTAINED: Isolated host {host_ip} due to threat level {threat_level}")
+                        self._send_alert("HOST_ISOLATED", {
+                            "host": host_ip,
+                            "threat_level": threat_level,
+                            "timestamp": datetime.now().isoformat()
+                        })
+            
+            for process_info in suspicious_processes:
+                pid = process_info.get("pid")
+                host = process_info.get("host", "localhost")
+                
+                if pid and threat_level in ['high', 'critical']:
+                    success = containment_actions.kill_process(pid, host)
+                    if success:
+                        logging.warning(f"TERMINATED: Process {pid} on {host} due to threat level {threat_level}")
+                        
+        except ImportError:
+            logging.warning("ContainmentActions not available - endpoint containment disabled")
+    
+    def _send_alert(self, alert_type: str, alert_data: Dict[str, Any]):
+        """Send alerts to external systems"""
+        
+        alert_payload = {
+            "timestamp": datetime.now().isoformat(),
+            "alert_type": alert_type,
+            "severity": self._get_alert_severity(alert_data.get("threat_level", "low")),
+            "source": "AI_NOC_Agents",
+            "data": alert_data
+        }
+        
+        # Send to Splunk HEC
+        if hasattr(self, 'config') and self.config.get("splunk_hec_url"):
+            self._send_to_splunk(alert_payload)
+        
+        # Send to Slack
+        if hasattr(self, 'config') and self.config.get("slack_webhook_url"):
+            self._send_to_slack(alert_payload)
+    
+    def _get_alert_severity(self, threat_level: str) -> str:
+        """Convert threat level to alert severity"""
+        severity_map = {
+            "critical": "CRITICAL",
+            "high": "HIGH",
+            "moderate": "MEDIUM",
+            "low": "LOW"
+        }
+        return severity_map.get(threat_level, "INFO")
+    
+    def _send_to_splunk(self, alert_payload: Dict[str, Any]):
+        """Send alert to Splunk via HTTP Event Collector"""
+        try:
+            import requests
+            import json
+            
+            splunk_payload = {
+                "event": alert_payload,
+                "sourcetype": "ai_noc_alert",
+                "source": "ai_agents"
+            }
+            
+            headers = {
+                "Authorization": f"Splunk {self.config['splunk_hec_token']}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(
+                self.config["splunk_hec_url"],
+                data=json.dumps(splunk_payload),
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                logging.info("Alert sent to Splunk successfully")
+            else:
+                logging.error(f"Splunk alert failed: {response.status_code}")
+                
+        except Exception as e:
+            logging.error(f"Splunk alerting error: {e}")
+
+    def _send_to_slack(self, alert_payload: Dict[str, Any]):
+        """Send alert to Slack channel"""
+        try:
+            import requests
+            import json
+            
+            severity = alert_payload.get("severity", "INFO")
+            emoji = {"CRITICAL": "🚨", "HIGH": "⚠️", "MEDIUM": "🔍", "LOW": "ℹ️"}.get(severity, "📊")
+            
+            slack_message = {
+                "text": f"{emoji} NOC AI Agent Alert",
+                "attachments": [{
+                    "color": {"CRITICAL": "danger", "HIGH": "warning", "MEDIUM": "good", "LOW": "#36a64f"}.get(severity, "#36a64f"),
+                    "fields": [
+                        {"title": "Alert Type", "value": alert_payload["alert_type"], "short": True},
+                        {"title": "Severity", "value": severity, "short": True},
+                        {"title": "Timestamp", "value": alert_payload["timestamp"], "short": True},
+                        {"title": "Details", "value": json.dumps(alert_payload["data"], indent=2), "short": False}
+                    ]
+                }]
+            }
+            
+            response = requests.post(
+                self.config["slack_webhook_url"],
+                data=json.dumps(slack_message),
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                logging.info("Alert sent to Slack successfully")
+            else:
+                logging.error(f"Slack alert failed: {response.status_code}")
+                
+        except Exception as e:
+            logging.error(f"Slack alerting error: {e}")
 
     def _execute_containment_step(self, step: Dict[str, Any], alert: SafetyAlert) -> Dict[str, Any]:
         """Execute individual containment step"""
